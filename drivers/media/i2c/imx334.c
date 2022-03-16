@@ -49,7 +49,7 @@
 #define IMX334_INCLK_RATE	24000000
 
 /* CSI2 HW configuration */
-#define IMX334_LINK_FREQ	891000000
+#define IMX334_LINK_FREQ	1782000000
 #define IMX334_NUM_DATA_LANES	4
 
 #define IMX334_REG_MIN		0x00
@@ -797,7 +797,7 @@ static int imx334_parse_hw_config(struct imx334 *imx334)
 	}
 
 	/* Get sensor input clock */
-	imx334->inclk = devm_clk_get(imx334->dev, NULL);
+	/*imx334->inclk = devm_clk_get(imx334->dev, NULL);
 	if (IS_ERR(imx334->inclk)) {
 		dev_err(imx334->dev, "could not get inclk");
 		return PTR_ERR(imx334->inclk);
@@ -807,7 +807,7 @@ static int imx334_parse_hw_config(struct imx334 *imx334)
 	if (rate != IMX334_INCLK_RATE) {
 		dev_err(imx334->dev, "inclk frequency mismatch");
 		return -EINVAL;
-	}
+	}*/
 
 	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
 	if (!ep)
@@ -875,8 +875,8 @@ static int imx334_power_on(struct device *dev)
 	int ret;
 
 	gpiod_set_value_cansleep(imx334->reset_gpio, 1);
-
-	ret = clk_prepare_enable(imx334->inclk);
+	//ret = clk_prepare_enable(imx334->inclk);
+	ret = 0;
 	if (ret) {
 		dev_err(imx334->dev, "fail to enable inclk");
 		goto error_reset;
@@ -905,7 +905,7 @@ static int imx334_power_off(struct device *dev)
 
 	gpiod_set_value_cansleep(imx334->reset_gpio, 0);
 
-	clk_disable_unprepare(imx334->inclk);
+	//clk_disable_unprepare(imx334->inclk);
 
 	return 0;
 }
