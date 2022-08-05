@@ -757,7 +757,7 @@ static void xilinx_xdma_set_config(struct dma_chan *chan, u32 fourcc, u32 type)
 	if (ret == -EINVAL) {
 		dev_err(chan->device->dev,
 			"Framebuffer not configured for fourcc %p4cc\n",
-			fourcc);
+			&fourcc);
 		return;
 	}
 
