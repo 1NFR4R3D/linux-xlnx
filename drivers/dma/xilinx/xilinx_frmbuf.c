@@ -1436,6 +1436,7 @@ xilinx_frmbuf_dma_prep_interleaved(struct dma_chan *dchan,
 			"vsize %d max vsize %d hsize %d max hsize %d\n",
 			vsize, chan->xdev->max_height, hsize,
 			chan->xdev->max_width);
+		dev_err(chan->xdev->dev,"HSIZE=%d, VSIZE=%d\n",hsize,vsize);
 		dev_err(chan->xdev->dev, "Requested size not supported!\n");
 		goto error;
 	}
