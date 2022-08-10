@@ -758,7 +758,10 @@ static void xilinx_xdma_set_config(struct dma_chan *chan, u32 fourcc, u32 type)
 		dev_err(chan->device->dev,
 			"Framebuffer not configured for fourcc %x\n",
 			fourcc);
-		dev_err(chan->device->dev,"Type = %x",type);
+		if (type == XDMA_DRM)
+			dev_err(chan->device->dev,"Type = DRM\n");
+		if (type == XDMA_V4L2)
+			dev_err(chan->device->dev,"Type = V4L2\n");
 		return;
 	}
 
