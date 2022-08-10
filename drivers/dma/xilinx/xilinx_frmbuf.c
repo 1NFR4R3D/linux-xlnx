@@ -756,8 +756,9 @@ static void xilinx_xdma_set_config(struct dma_chan *chan, u32 fourcc, u32 type)
 	ret = frmbuf_verify_format(chan, fourcc, type);
 	if (ret == -EINVAL) {
 		dev_err(chan->device->dev,
-			"Framebuffer not configured for fourcc %p4cc\n",
-			&fourcc);
+			"Framebuffer not configured for fourcc %x\n",
+			fourcc);
+		dev_err(chan->device->dev,"Type = %x",type);
 		return;
 	}
 
@@ -1408,15 +1409,18 @@ xilinx_frmbuf_dma_prep_interleaved(struct dma_chan *dchan,
 	struct xilinx_frmbuf_desc_hw *hw;
 	u32 vsize, hsize;
 
-	if (chan->direction != xt->dir || !chan->vid_fmt)
+	if (chan->direction != xt->dir || !chan->vid_fmt) {
+		dev_err(chan->xdev->dev, "Direction mismatch!\n");
 		goto error;
-
-	if (!xt->numf || !xt->sgl[0].size)
+	}
+	if (!xt->numf || !xt->sgl[0].size) {
+		dev_err(chan->xdev->dev, "numf error!\n");
 		goto error;
-
-	if (xt->frame_size != chan->vid_fmt->num_planes)
+	}
+	if (xt->frame_size != chan->vid_fmt->num_planes) {
+		dev_err(chan->xdev->dev, "num planes error!\n");
 		goto error;
-
+	}
 	vsize = xt->numf;
 	hsize = (xt->sgl[0].size * chan->vid_fmt->ppw * 8) /
 		 chan->vid_fmt->bpw;
