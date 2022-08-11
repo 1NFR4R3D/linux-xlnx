@@ -418,7 +418,7 @@ static const struct xilinx_frmbuf_format_desc xilinx_frmbuf_formats[] = {
 		.ppw = 3,
 		.num_planes = 1,
 		.drm_fmt = DRM_FORMAT_Y10,
-		.v4l2_fmt = V4L2_PIX_FMT_Y10,
+		.v4l2_fmt = V4L2_PIX_FMT_XY10,
 		.fmt_bitmask = BIT(17),
 	},
 	{
@@ -758,10 +758,6 @@ static void xilinx_xdma_set_config(struct dma_chan *chan, u32 fourcc, u32 type)
 		dev_err(chan->device->dev,
 			"Framebuffer not configured for fourcc %x\n",
 			fourcc);
-		if (type == XDMA_DRM)
-			dev_err(chan->device->dev,"Type = DRM\n");
-		if (type == XDMA_V4L2)
-			dev_err(chan->device->dev,"Type = V4L2\n");
 		return;
 	}
 
@@ -1412,18 +1408,12 @@ xilinx_frmbuf_dma_prep_interleaved(struct dma_chan *dchan,
 	struct xilinx_frmbuf_desc_hw *hw;
 	u32 vsize, hsize;
 
-	if (chan->direction != xt->dir || !chan->vid_fmt) {
-		dev_err(chan->xdev->dev, "Direction mismatch!\n");
+	if (chan->direction != xt->dir || !chan->vid_fmt)
 		goto error;
-	}
-	if (!xt->numf || !xt->sgl[0].size) {
-		dev_err(chan->xdev->dev, "numf error!\n");
+	if (!xt->numf || !xt->sgl[0].size)
 		goto error;
-	}
-	if (xt->frame_size != chan->vid_fmt->num_planes) {
-		dev_err(chan->xdev->dev, "num planes error!\n");
+	if (xt->frame_size != chan->vid_fmt->num_planes)
 		goto error;
-	}
 	vsize = xt->numf;
 	hsize = (xt->sgl[0].size * chan->vid_fmt->ppw * 8) /
 		 chan->vid_fmt->bpw;
@@ -1436,7 +1426,6 @@ xilinx_frmbuf_dma_prep_interleaved(struct dma_chan *dchan,
 			"vsize %d max vsize %d hsize %d max hsize %d\n",
 			vsize, chan->xdev->max_height, hsize,
 			chan->xdev->max_width);
-		dev_err(chan->xdev->dev,"HSIZE=%d, VSIZE=%d\n",hsize,vsize);
 		dev_err(chan->xdev->dev, "Requested size not supported!\n");
 		goto error;
 	}
