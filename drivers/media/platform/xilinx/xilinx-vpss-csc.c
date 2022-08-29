@@ -64,6 +64,9 @@
 #define XCSC_COLOR_CTRL_COUNT		(5)
 #define XCSC_COLOR_CTRL_DEFAULT		(50)
 
+#ifndef DEBUG
+	#define DEBUG
+#endif
 enum xcsc_color_fmt {
 	XVIDC_CSF_RGB = 0,
 	XVIDC_CSF_YCRCB_444,
