@@ -22,8 +22,9 @@
 static int aie_part_get_clk_state_bit(struct aie_partition *apart,
 				      struct aie_location *loc)
 {
-	if (apart->adev->ops->get_tile_type(apart->adev, loc) !=
-			AIE_TILE_TYPE_TILE)
+	u32 ttype = apart->adev->ops->get_tile_type(apart->adev, loc);
+
+	if (ttype != AIE_TILE_TYPE_TILE && ttype != AIE_TILE_TYPE_MEMORY)
 		return -EINVAL;
 
 	return (loc->col - apart->range.start.col) *
@@ -54,9 +55,9 @@ bool aie_part_check_clk_enable_loc(struct aie_partition *apart,
 				   struct aie_location *loc)
 {
 	int bit;
+	u32 ttype = apart->adev->ops->get_tile_type(apart->adev, loc);
 
-	if (apart->adev->ops->get_tile_type(apart->adev, loc) !=
-			AIE_TILE_TYPE_TILE)
+	if (ttype != AIE_TILE_TYPE_TILE && ttype != AIE_TILE_TYPE_MEMORY)
 		return true;
 
 	bit = aie_part_get_clk_state_bit(apart, loc);
@@ -72,8 +73,8 @@ bool aie_part_check_clk_enable_loc(struct aie_partition *apart,
  *
  * This function will enable clocks of the specified tiles.
  */
-static int aie_part_request_tiles(struct aie_partition *apart, int num_tiles,
-				  struct aie_location *locs)
+int aie_part_request_tiles(struct aie_partition *apart, int num_tiles,
+			   struct aie_location *locs)
 {
 	if (num_tiles == 0) {
 		aie_resource_set(&apart->tiles_inuse, 0,
@@ -104,8 +105,8 @@ static int aie_part_request_tiles(struct aie_partition *apart, int num_tiles,
  *
  * This function will disable clocks of the specified tiles.
  */
-static int aie_part_release_tiles(struct aie_partition *apart, int num_tiles,
-				  struct aie_location *locs)
+int aie_part_release_tiles(struct aie_partition *apart, int num_tiles,
+			   struct aie_location *locs)
 {
 	if (num_tiles == 0) {
 		aie_resource_clear(&apart->tiles_inuse, 0,
@@ -294,6 +295,7 @@ int aie_part_set_freq(struct aie_partition *apart, u64 freq)
 	struct aie_device *adev = apart->adev;
 	struct aie_aperture *aperture = apart->aperture;
 	unsigned long clk_rate;
+	u64 temp_freq;
 	u32 boot_qos, current_qos, target_qos;
 	int ret;
 
@@ -305,6 +307,7 @@ int aie_part_set_freq(struct aie_partition *apart, u64 freq)
 		return -EINVAL;
 	}
 
+	temp_freq = apart->freq_req;
 	apart->freq_req = freq;
 
 	freq = aie_aperture_get_freq_req(aperture);
@@ -317,12 +320,26 @@ int aie_part_set_freq(struct aie_partition *apart, u64 freq)
 		return -EINVAL;
 	}
 
-	target_qos = (boot_qos * freq) / clk_rate;
+	target_qos = (boot_qos * clk_rate) / freq;
+
+	/* The clock divisor value (QoS) is a 10-bit value */
+	if (target_qos > (BIT(10) - 1)) {
+		/*
+		 * Reset the logged partition frequency requirement to its
+		 * pervious value.
+		 */
+		apart->freq_req = temp_freq;
+		dev_err(&apart->dev, "Failed to set frequency requirement. Frequency value out-of bound.\n");
+		return -EINVAL;
+	}
+
 	ret = zynqmp_pm_set_requirement(aperture->node_id,
 					ZYNQMP_PM_CAPABILITY_ACCESS, target_qos,
 					ZYNQMP_PM_REQUEST_ACK_BLOCKING);
-	if (ret < 0)
+	if (ret < 0) {
+		apart->freq_req = temp_freq;
 		dev_err(&apart->dev, "Failed to set frequency requirement.\n");
+	}
 
 	return ret;
 }
@@ -380,7 +397,7 @@ int aie_part_get_freq(struct aie_partition *apart, u64 *freq)
 		return ret;
 	}
 
-	*freq = (clk_rate * current_qos) / boot_qos;
+	*freq = (clk_rate * boot_qos) / current_qos;
 	return 0;
 }
 

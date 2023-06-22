@@ -65,6 +65,8 @@ static const struct xvip_video_format xvip_video_formats[] = {
 	{ XVIP_VF_YUV_444, 10, NULL, MEDIA_BUS_FMT_VUY10_1X30,
 	  1, 24, V4L2_PIX_FMT_X403, 3, 1, 1, 1 },
 	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
+	  1, 24, V4L2_PIX_FMT_YUV444P, 3, 1, 1, 1 },
+	{ XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
 	  1, 8, V4L2_PIX_FMT_YUV444M, 3, 3, 1, 1 },
 	{ XVIP_VF_YUVX, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
 	  4, 32, V4L2_PIX_FMT_XVUY32, 1, 1, 1, 1 },
@@ -108,6 +110,8 @@ static const struct xvip_video_format xvip_video_formats[] = {
 	  1, 8, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1 },
 	{ XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
 	  1, 8, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1 },
+	{ XVIP_VF_MONO_SENSOR, 12, "mono", MEDIA_BUS_FMT_Y12_1X12,
+	  2, 12, V4L2_PIX_FMT_Y12, 1, 1, 1, 1 },
 	{ XVIP_VF_MONO_SENSOR, 10, "rggb", MEDIA_BUS_FMT_SRGGB10_1X10,
 	  2, 10, V4L2_PIX_FMT_SRGGB10, 1, 1, 1, 1 },
 	{ XVIP_VF_MONO_SENSOR, 10, "grbg", MEDIA_BUS_FMT_SGRBG10_1X10,
@@ -385,10 +389,8 @@ EXPORT_SYMBOL_GPL(xvip_clr_and_set);
 int xvip_init_resources(struct xvip_device *xvip)
 {
 	struct platform_device *pdev = to_platform_device(xvip->dev);
-	struct resource *res;
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	xvip->iomem = devm_ioremap_resource(xvip->dev, res);
+	xvip->iomem = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(xvip->iomem))
 		return PTR_ERR(xvip->iomem);
 

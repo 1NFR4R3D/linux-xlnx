@@ -17,12 +17,14 @@ properties:
     maxItems: 1
 
   interrupts:
-    minItems: 3
     maxItems: 3
     description: |
       A list of 3 interrupts; one per timer channel.
 
   clocks:
+    maxItems: 1
+
+  power-domains:
     maxItems: 1
 
   timer-width:
@@ -33,6 +35,8 @@ properties:
   "#pwm-cells":
     description: |
       Required to configure TTC as PWM device, supported cells are 0 to 3.
+    minimum: 0
+    maximum: 3
 
 required:
   - compatible
@@ -67,5 +71,5 @@ examples:
         reg = <0xF8002000 0x1000>;
         clocks = <&cpu_clk 3>;
         timer-width = <32>;
-        #pwm-cells = <0>;
+        #pwm-cells = <3>;
     };

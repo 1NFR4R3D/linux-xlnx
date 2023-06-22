@@ -491,6 +491,16 @@ static const struct xilinx_frmbuf_format_desc xilinx_frmbuf_formats[] = {
 		.fmt_bitmask = BIT(24),
 	},
 	{
+		.dts_name = "y_u_v8",
+		.id = XILINX_FRMBUF_FMT_Y_U_V8,
+		.bpw = 32,
+		.ppw = 4,
+		.num_planes = 3,
+		.v4l2_fmt = V4L2_PIX_FMT_YUV444P,
+		.drm_fmt = DRM_FORMAT_YUV444,
+		.fmt_bitmask = BIT(24),
+	},
+	{
 		.dts_name = "y_u_v10",
 		.id = XILINX_FRMBUF_FMT_Y_U_V10,
 		.bpw = 32,
@@ -903,7 +913,7 @@ int xilinx_xdma_get_fid_err_flag(struct dma_chan *chan,
 	if (IS_ERR(xdev))
 		return PTR_ERR(xdev);
 
-	if (xdev->chan.direction != DMA_DEV_TO_MEM || !xdev->chan.idle)
+	if (xdev->chan.direction != DMA_MEM_TO_DEV || xdev->chan.idle)
 		return -EINVAL;
 
 	*fid_err_flag = xdev->chan.fid_err_flag;
@@ -921,7 +931,7 @@ int xilinx_xdma_get_fid_out(struct dma_chan *chan,
 	if (IS_ERR(xdev))
 		return PTR_ERR(xdev);
 
-	if (xdev->chan.direction != DMA_DEV_TO_MEM || !xdev->chan.idle)
+	if (xdev->chan.direction != DMA_MEM_TO_DEV || xdev->chan.idle)
 		return -EINVAL;
 
 	*fid_out_val = xdev->chan.fid_out_val;
